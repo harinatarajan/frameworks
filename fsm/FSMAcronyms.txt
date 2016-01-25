@@ -1,0 +1,55 @@
+State Machine
+------------------------
+Context wraps the StateAware interface object and provides request scoped data that
+maybe required by the state machine. It also has the event object based on the incoming
+request action.
+
+STATE class extends AbstractState class. A state class overrides the entry, exit
+implementation and implements methods annotated by the event code. When a state is
+activated with a specific event in the context, the method defined for that event is
+executed. A state can choose to defined a method as default by setting 'default=true' in
+the method level Event annotation. This method will be invoked when the state is activated
+without an event object. State can be activated either via external trigger or internal
+transition. On entry into the state, the current status of the SAO (state aware object) is
+set to the current state name. The value is set to the name defined by state annotation. A
+concrete implementation of the state class entry and exit method is expected to call the
+parent's entry exit method for the status to be set appropriately. The base AbstractState
+class entry method invokes persitState on the actual state class.
+
+
+TRANSITIONS are used to transition a state from one state to another. A transition may
+have one or more guard conditions. A transition may have an event. A guard condition
+should evaluate to true or false. A transition to the target state is made when all the
+guard conditions defined on the transition evaluates to true. If no guard conditions are
+defined on a transition then that transition will be considered as a default or fallback
+transition. If all guarded transitions are evaluated to false, the default transition will
+be chosen. If there are no transitions leading out of the current state, and current state
+is not one of the final state or parallelstatemodel, then a NoTransitionFoundException
+will be thrown.
+
+There are 2 types of transition. A method transition and state transition. A method level
+transition will transition a state to the target state and run the method defined by the
+event code on the target state. If no event is specified on a method transition, the
+state's default method will be executed. If no method is set as default, then an
+NoHandlerException will be thrown.  A state level transition, will transition a
+state to the target state and run only the entry method. A state level transition is one
+way of ending the state flow. A state level transition will transition the existing state
+to the appropriate next state for further processing and wait for the appropriate external
+event to trigger it. The state level transition helps to accomodate a situation when a
+specific state requires external input to proceed further.
+
+STATEMODEL defines a set of states and transitions chained together in some fashion. There
+can be many state models defined in the system. The state model is chosen based on the
+request context. Every state model has a start and one or more end state. A parallel state
+is also an end state. States that takes a state level transition is also considered an end
+state.
+
+PARALLELSTATEMODEL extends the state object. Parallel state model enables the state engine
+to create multiple state model executions concurrently. Each of the state model execution
+will run to a completion and change the SAO appropriately. Each state model execution
+thread will have a different SAO instance to work on. The parallel state concrete
+implementation should provide the number of splits required and the SAO instances for
+those splits.
+
+STATEENGINE runs the SAO through the state model. The state engine runs the state model
+till it reaches the end state. 

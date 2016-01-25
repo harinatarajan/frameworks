@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context.xsd
+           http://www.springframework.org/schema/util
+           http://www.springframework.org/schema/util/spring-util.xsd
+        ">
+
+
+    <context:component-scan base-package="com.ssudhaiyer.fsm"/>
+
+    <!-- defaults -->
+    <bean id="orderPreAuthenticateEvent" class="com.ssudhaiyer.fsm.framework.impl.DefaultEvent">
+        <property name="eventCode">
+            <util:constant
+                    static-field="com.ssudhaiyer.fsm.framework.states.OrderEventCodes.preAuthenticate"/>
+        </property>
+        <property name="eventType">
+            <util:constant
+                    static-field="com.ssudhaiyer.fsm.framework.EventType.localTransistion"/>
+        </property>
+    </bean>
+
+
+    <bean id="orderCancelEvent" class="com.ssudhaiyer.fsm.framework.impl.DefaultEvent">
+        <property name="eventCode">
+            <util:constant
+                    static-field="com.ssudhaiyer.fsm.framework.states.OrderEventCodes.cancelOrder"/>
+        </property>
+        <property name="eventType">
+            <util:constant
+                    static-field="com.ssudhaiyer.fsm.framework.EventType.localTransistion"/>
+        </property>
+    </bean>
+
+    <bean id="defaultGuardCondition"
+          class="com.ssudhaiyer.fsm.framework.impl.DefaultGuardCondition"/>
+
+    <!-- states -->
+
+    <bean id="newOrderState"
+          class="com.ssudhaiyer.fsm.framework.states.NewOrderState">
+        <constructor-arg>
+            <value>false</value>
+        </constructor-arg>
+    </bean>
+
+    <bean id="cancelOrderState"
+          class="com.ssudhaiyer.fsm.framework.states.CancelOrderState">
+        <constructor-arg>
+            <value>true</value>
+        </constructor-arg>
+    </bean>
+
+    <bean id="authorizePendingState"
+          class="com.ssudhaiyer.fsm.framework.states.AuthorizePendingState">
+        <constructor-arg>
+            <value>false</value>
+        </constructor-arg>
+    </bean>
+
+    <bean id="fulfillmentPendingState"
+          class="com.ssudhaiyer.fsm.framework.states.FulfillmentPendingState">
+        <constructor-arg>
+            <value>true</value>
+        </constructor-arg>
+    </bean>
+
+    <!-- guard conditions -->
+
+    <bean id="checkIncorrectOrderInformation"
+          class="com.ssudhaiyer.fsm.framework.states.CheckIncorrectOrderInformation"/>
+
+    <!-- NewOrderState transitions -->
+
+    <bean id="cancelOrderTransition"
+          class="com.ssudhaiyer.fsm.framework.impl.DefaultTransition">
+        <constructor-arg index="0">
+            <list>
+                <ref bean="checkIncorrectOrderInformation"/>
+            </list>
+        </constructor-arg>
+        <constructor-arg index="1">
+            <ref bean="newOrderState"/>
+        </constructor-arg>
+        <constructor-arg index="2">
+            <ref bean="cancelOrderState"/>
+        </constructor-arg>
+        <constructor-arg index="3">
+            <util:constant
+                    static-field="com.ssudhaiyer.fsm.framework.TransitionType.STATE"/>
+        </constructor-arg>
+        <constructor-arg index="4">
+            <ref bean="orderCancelEvent"/>
+        </constructor-arg>
+    </bean>
+
+
+    <bean id="authroizePendingTransition"
+          class="com.ssudhaiyer.fsm.framework.impl.DefaultTransition">
+        <constructor-arg index="0">
+            <list>
+                <ref bean="defaultGuardCondition"/>
+            </list>
+        </constructor-arg>
+        <constructor-arg index="1">
+            <ref bean="newOrderState"/>
+        </constructor-arg>
+        <constructor-arg index="2">
+            <ref bean="authorizePendingState"/>
+        </constructor-arg>
+        <constructor-arg index="3">
+            <util:constant
+                    static-field="com.ssudhaiyer.fsm.framework.TransitionType.METHOD"/>
+        </constructor-arg>
+        <constructor-arg index="4">
+            <ref bean="orderPreAuthenticateEvent"/>
+        </constructor-arg>
+    </bean>
+
+    <!-- AuthorizePendingState transitions -->
+    <bean id="fulfillmentPendingTransition"
+          class="com.ssudhaiyer.fsm.framework.impl.DefaultTransition">
+        <constructor-arg index="0">
+            <list>
+                <ref bean="defaultGuardCondition"/>
+            </list>
+        </constructor-arg>
+        <constructor-arg index="1">
+            <ref bean="authorizePendingState"/>
+        </constructor-arg>
+        <constructor-arg index="2">
+            <ref bean="fulfillmentPendingState"/>
+        </constructor-arg>
+        <constructor-arg index="3">
+            <util:constant
+                    static-field="com.ssudhaiyer.fsm.framework.TransitionType.STATE"/>
+        </constructor-arg>
+    </bean>
+
+    <!-- state model -->
+    <bean id="orderStateModel"
+          class="com.ssudhaiyer.fsm.framework.impl.DefaultStateModel">
+        <constructor-arg index="0">
+            <ref bean="newOrderState"/>
+        </constructor-arg>
+        <constructor-arg index="1">
+            <list>
+                <ref bean="newOrderState"/>
+                <ref bean="cancelOrderState"/>
+                <ref bean="authorizePendingState"/>
+                <ref bean="fulfillmentPendingState"/>
+            </list>
+        </constructor-arg>
+        <constructor-arg index="2">
+            <list>
+                <ref bean="cancelOrderTransition"/>
+                <ref bean="authroizePendingTransition"/>
+                <ref bean="fulfillmentPendingTransition"/>
+            </list>
+        </constructor-arg>
+    </bean>
+</beans>
+           
