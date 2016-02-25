@@ -11,9 +11,11 @@ import com.ssudhaiyer.fsm.framework.impl.*;
 /**
  * StateEngine
  * <p/>
- * The state engine executes the state model by running the state aware object.
- * through it.
- *
+ * The state engine is the heart of FSM framework. It manages the execution of state model (graph of connected states)  
+ * by running the state aware instance object through the graph. It reinstates the state machine from its current state
+ * to a desirable state based on the event received.
+ * 
+ * 
  * @author sudha_subramanian
  */
 public class StateEngine {
